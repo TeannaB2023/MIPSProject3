@@ -1,4 +1,21 @@
-# MIPS Programming Project 1
+#################################################MIPS_Project2
+# Gets a string from user, reads it, converts the string to base
+# 30 then prints out the decimal conversion of the base 30 value.
+# The base is 30 based on a simple calculation with my id #. The 
+# input will be invalid if there are more than 4 characters, has an
+# out of range character or is empty after all spaces and tabs are removed.
+#
+# Arg registers used: $a0, $a1, $a2, $a3
+# Tmp registers used: $t0, $t1, $t2, $t3, $t4, $t5
+# Value registers used: $v0, $v1
+#
+# Pre: none
+# Post: $v1 contains the return value
+# Returns: the decimal value of a viable string input in base 30
+#
+# Called by: main
+# Calls: Subprogram for conversion
+
 	.data # This is the section to declare variables that will be used in the program
 	x: .space 11 		# The space for the input is initialized (will only read 10 characters)
 	id: .word 02924893	# Store the value of my personal id
@@ -6,7 +23,7 @@
 	.text # This is the section where the instructions will be written
 main:
 	li	$v0, 8	# load value of 8 so syscall knows that it will be reading from and story the input
-	la	$a0, x	# Loads the address of the id input to $a0 register
+	la	$a0, x	# Loads the address of the string input to $a0 register
 	li	$a1, 11	# Loads the amount of space that is allocated for the input 
 	syscall		# Completes the read string instruction
 	
