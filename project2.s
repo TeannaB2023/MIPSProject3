@@ -17,15 +17,15 @@
 # Calls: Subprogram for conversion
 
 	.data # This is the section to declare variables that will be used in the program
-	x: .space 11 		# The space for the input is initialized (will only read 10 characters)
-	id: .word 02924893	# Store the value of my personal id
+	x: .space 1001 		# The space for the input is initialized (will only read 1000 characters endline)
+	id: .word 02924893	# Defines the value of Teanna Barrett's id
 
 	.text # This is the section where the instructions will be written
 main:
-	li	$v0, 8	# load value of 8 so syscall knows that it will be reading from and story the input
-	la	$a0, x	# Loads the address of the string input to $a0 register
-	li	$a1, 11	# Loads the amount of space that is allocated for the input 
-	syscall		# Completes the read string instruction
+	li	$v0, 8		# load value of 8 so syscall knows that it will be reading from and store the input
+	la	$a0, x		# Loads the address of the string input to $a0 register
+	li	$a1, 1001	# Loads the amount of space that is allocated for the input 
+	syscall			# Completes the read string instruction
 	
 	add	$t3, $zero, $zero	# Keeps track of the increments for the loop
 	la	$a2, id			# Load the address of my id
@@ -71,8 +71,8 @@ ADD:
 INCREMENT:
 	addi	$a0, $a0, 1		# Increment the address by one
 	addi	$t3, $t3, 1		# Increment the loop counter by 1
-	slti	$t2, $t3, 10		# This will check if current place of the loop is still on the input 
-	bne	$t2, $zero, START	# The program will loop for only 10 iterations
+	slti	$t2, $t3, 1000		# This will check if current place of the loop is still on the input 
+	bne	$t2, $zero, START	# The program will loop for only 1000 iterations
 			
 	sh	$t0, 0($a0)	# Store the sum in memory right after the id string
 	li	$v0, 1		# Loads value that tells syscall to print
