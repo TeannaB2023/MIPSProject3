@@ -33,7 +33,7 @@ main:
 	addi	$t6, $zero, 11		# Initialize the number that will be divide the id
 	div	$t5, $t6		# X % 11
 	mfhi	$t5			# Move the remainder of the division to a register
-	addi	$t5, $t5, 26		# N = (X % 11) + 26
+	addi	$s0, $t5, 26		# N = (X % 11) + 26
 
 START:	
 	lb	$t1, 0($a0)		# Loads the ASCII value of the first character
@@ -64,7 +64,7 @@ NOT:
 	add	$t1, $zero, $zero	# If not the sum is skipped over
 
 ADD:	
-	slt	$t2, $t1, $t5		# Checks if the converted value is less than the base number
+	slt	$t2, $t1, $s0		# Checks if the converted value is less than the base number
 	beq	$t2, $zero, INCREMENT	# If the value cannot be represented by the base it's not added to the sum
 	add	$t0, $t0, $t1		# Adds the character value to the sum
 
