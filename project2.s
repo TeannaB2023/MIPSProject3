@@ -34,7 +34,14 @@ main:
 	div	$t5, $t6		# X % 11
 	mfhi	$t5			# Move the remainder of the division to a register
 	addi	$s0, $t5, 26		# N = (X % 11) + 26
+	jal	START
+	sh	$t0, 0($a0)	# Store the sum in memory right after the id string
+	li	$v0, 1		# Loads value that tells syscall to print
+	lh	$a0, 0($a0)	# Load the sum from memory so it can be printed
+	syscall			# Completes the print instruction
 
+	li	$v0, 10		# Exit program call
+	syscall		
 START:	
 	lb	$t1, 0($a0)		# Loads the ASCII value of the first character
 	slti	$t2, $t1, 48		# Evaluates if the ASCII value could be a number or letter
@@ -72,12 +79,5 @@ INCREMENT:
 	addi	$a0, $a0, 1		# Increment the address by one
 	addi	$t3, $t3, 1		# Increment the loop counter by 1
 	slti	$t2, $t3, 1000		# This will check if current place of the loop is still on the input 
-	bne	$t2, $zero, START	# The program will loop for only 1000 iterations
-			
-	sh	$t0, 0($a0)	# Store the sum in memory right after the id string
-	li	$v0, 1		# Loads value that tells syscall to print
-	lh	$a0, 0($a0)	# Load the sum from memory so it can be printed
-	syscall			# Completes the print instruction
-
-	li	$v0, 10		# Exit program call
-	syscall		
+	bne	$t2, $zero, START	# The program will loop for only 1000 iterations		
+	jr $ra
