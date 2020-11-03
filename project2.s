@@ -50,12 +50,12 @@ main:
 
 TORS:	
 	lb	$t5, 0($a0)		# Load the byte that represents a character from the input string
-	li	$t4, 10		
+	li	$t4, 10			# Loads the value of the new line character
 	beq	$t5, $t4, SUBEXIT 	# If at the end of the string exit the loop early
 	li	$t4, 9			# Loads the ASCII value of TAB
-	beq	$t5, $t4, INCREMENT	# Skips over the conversion if it is TAB
+	beq	$t5, $t4, BETWEEN	# Skips over the conversion if it is TAB
 	li	$t4, 32			# Loads the ASCII value of SPACE
-	beq	$t5, $t4, INCREMENT	# Skips over the conversion if it is SPACE
+	beq	$t5, $t4, BETWEEN	# Skips over the conversion if it is SPACE
 
 CONVERT:
 	slti	$t4, $t5, 48		# Evaluates if the ASCII value could be a number or letter
@@ -85,19 +85,21 @@ CHECK:
 	addi 	$t7, $t7, 1		# Increment the viable character counter by one
 	li	$t4, 5			# Load 5 to check if there are more than 4 viable character
 	beq	$t7, $t4, INVALID	# If the viable counter is 5 exit the loop because the input is invalid
+	j	INCREMENT
 
-STORE:	
-	add	$s1, $s1, $t5		# Add viable character to total (temp)
-
+BETWEEN:
+	slti	$t4, $t7, 4		# Checks if the tab or space is in between viable characters, if so the input is invalid
+	bne	$t4, $zero, INVALID		
+	
 INCREMENT:
 	addi 	$a0, $a0, 1		# Increments the base address to read the next character
 	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
 	slti 	$t4, $t3, 1000		# Checks to make sure the loop is within the limit
 	bne	$t4, $zero, TORS	# If the loop is less than 1000 it continues
 	j	SUBEXIT
-
+	
 INVALID:
-	li	$t7, 0
+	li	$t7, 0			# (temp) Returns the counter as 0 to represent an invalid statement
 
 SUBEXIT:
 	sb	$t7, 0($a0)		# Store the viable character counter so it can be printed out (temp)
