@@ -48,12 +48,14 @@ main:
 
 TORS:	
 	lb	$t5, 0($a0)		# Load the byte the represents
-	li	$t4, 10			
-	beq	$t5, $t4, SUBEXIT 
+	li	$t4, 10			# Loads ASCII value of new line character		
+	beq	$t5, $t4, SUBEXIT 	# If at the end of the string exit the loop early
 	li	$t4, 9			# Loads the ASCII value of TAB
 	beq	$t5, $t4, INCREMENT	# Skips over the conversion if it is TAB
 	li	$t4, 32			# Loads the ASCII value of SPACE
 	beq	$t5, $t4, INCREMENT	# Skips over the conversion if it is SPACE
+
+CONVERT:
 
 CHECK:
 	addi 	$t7, $t7, 1		# Increment the viable character counter by one
@@ -65,7 +67,7 @@ INCREMENT:
 	bne	$t4, $zero, TORS	# If the loop is less than 1000 it continues
 
 SUBEXIT:
-	sb	$t7, 0($a0)
+	sb	$t7, 0($a0)		# Store the viable character counter so it can be printed out (temp)
 	jr	$ra			# Exit the subprogram
 		
 	
