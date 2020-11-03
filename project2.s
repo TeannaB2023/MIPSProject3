@@ -59,7 +59,10 @@ TORS:
 CONVERT:
 	slti	$t4, $t5, 48		# Evaluates if the ASCII value could be a number or letter
 	bne	$t4, $zero, INVALID	# If the value of the character is less than it's not a viable character
-
+NUM:
+	slti	$t4, $t5, 58		# Checks if the value represents a number
+	beq	$t4, $zero, INCREMENT	# If not check to see if it's an uppercase letter
+	addi	$t5, $t5, -48		# Adjusts the value of number to base N	
 CHECK:
 	addi 	$t7, $t7, 1		# Increment the viable character counter by one
 
