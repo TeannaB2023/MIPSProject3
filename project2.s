@@ -61,8 +61,17 @@ CONVERT:
 	bne	$t4, $zero, INVALID	# If the value of the character is less than it's not a viable character
 NUM:
 	slti	$t4, $t5, 58		# Checks if the value represents a number
-	beq	$t4, $zero, INCREMENT	# If not check to see if it's an uppercase letter
-	addi	$t5, $t5, -48		# Adjusts the value of number to base N	
+	beq	$t4, $zero, UPPER	# If not check to see if it's an uppercase letter
+	addi	$t5, $t5, -48		# Adjusts the value of number to base N
+	j	CHECK	
+
+UPPER:
+	slti	$t4, $t5, 91		# Checks if the value represents an uppercase letter
+	beq	$t4, $zero, INCREMENT	# If not check to see if it's a lowercase letter
+	slti	$t4, $t5, 65		# Checks the lower bound of the upper case 
+	bne	$t4, $zero, INVALID	# If out of range it is not a viable character
+	addi	$t5, $t5, -55		# Adjusts the value of upper case letter to base N
+
 CHECK:
 	addi 	$t7, $t7, 1		# Increment the viable character counter by one
 
