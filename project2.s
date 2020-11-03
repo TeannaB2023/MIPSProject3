@@ -29,34 +29,43 @@ main:
 	li	$a1, 1001	# Loads the amount of space that is allocated for the input 
 	syscall			# Completes the read string instruction
 	
-	add	$t3, $zero, $zero	# Keeps track of the increments for the loop
+	add	$t3, $zero, $zero	# Keeps track of the increments for the whole string loop
+	add	$t7, $zero, $zero	# Keeps track of increments for viable characters
 	la	$a2, id			# Load the address of my id
 	lw	$t5, 0($a2)		# Get the value of the id
 	addi	$t6, $zero, 11		# Initialize the number that will be divide the id
 	div	$t5, $t6		# X % 11
 	mfhi	$t5			# Move the remainder of the division to a register
 	addi	$s0, $t5, 26		# N = (X % 11) + 26
-	jal	CONVERT
+	jal	TORS
 	
 	li	$v0, 1		# Loads value that tells syscall to print
-	lw	$a0, 0($a0)	# Load the sum from memory so it can be printed
+	lb	$a0, 0($a0)	# Load the sum from memory so it can be printed
 	syscall			# Completes the print instruction
 
 	li	$v0, 10		# Exit program call
 	syscall		
 
-CONVERT:	
+TORS:	
 	lb	$t5, 0($a0)		# Load the byte the represents
+	li	$t4, 10			
+	beq	$t5, $t4, SUBEXIT 
 	li	$t4, 9			# Loads the ASCII value of TAB
 	beq	$t5, $t4, INCREMENT	# Skips over the conversion if it is TAB
 	li	$t4, 32			# Loads the ASCII value of SPACE
 	beq	$t5, $t4, INCREMENT	# Skips over the conversion if it is SPACE
 
+CHECK:
+	addi 	$t7, $t7, 1		# Increment the viable character counter by one
+
 INCREMENT:
 	addi 	$a0, $a0, 1		# Increments the base address to read the next character
 	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
 	slti 	$t4, $t3, 1000		# Checks to make sure the loop is within the limit
-	bne	$t4, $zero, CONVERT	# If the loop is less than 1000 it continues
+	bne	$t4, $zero, TORS	# If the loop is less than 1000 it continues
+
+SUBEXIT:
+	sb	$t7, 0($a0)
 	jr	$ra			# Exit the subprogram
 		
 	
