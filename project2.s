@@ -23,6 +23,7 @@
 	invalid: .asciiz "Invalid input" # Value that should be printed if the input is invalid
 
 	.text # This is the section where the instructions will be written
+	.globl main
 main:
 	li	$v0, 8		# load value of 8 so syscall knows that it will be reading from and store the input
 	la	$a0, x		# Loads the address of the string input to $a0 register
@@ -47,8 +48,8 @@ main:
 	syscall		
 
 TORS:	
-	lb	$t5, 0($a0)		# Load the byte the represents
-	li	$t4, 10			# Loads ASCII value of new line character		
+	lb	$t5, 0($a0)		# Load the byte that represents a character from the input string
+	li	$t4, 10		
 	beq	$t5, $t4, SUBEXIT 	# If at the end of the string exit the loop early
 	li	$t4, 9			# Loads the ASCII value of TAB
 	beq	$t5, $t4, INCREMENT	# Skips over the conversion if it is TAB
@@ -56,7 +57,8 @@ TORS:
 	beq	$t5, $t4, INCREMENT	# Skips over the conversion if it is SPACE
 
 CONVERT:
-
+	slti	$t4, $t5, 48		# Evaluates if the ASCII value could be a number or letter
+	bne	$t2, $zero, INVALID	# If the value of the character is less than it's not a viable character
 CHECK:
 	addi 	$t7, $t7, 1		# Increment the viable character counter by one
 
@@ -65,9 +67,13 @@ INCREMENT:
 	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
 	slti 	$t4, $t3, 1000		# Checks to make sure the loop is within the limit
 	bne	$t4, $zero, TORS	# If the loop is less than 1000 it continues
+	j	SUBEXIT
+
+INVALID:
+	li	$t7, 0
 
 SUBEXIT:
 	sb	$t7, 0($a0)		# Store the viable character counter so it can be printed out (temp)
-	jr	$ra			# Exit the subprogram
+	jr	$ra			# Exit subprogram
 		
 	
