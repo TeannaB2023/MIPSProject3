@@ -58,7 +58,8 @@ TORS:
 
 CONVERT:
 	slti	$t4, $t5, 48		# Evaluates if the ASCII value could be a number or letter
-	bne	$t2, $zero, INVALID	# If the value of the character is less than it's not a viable character
+	bne	$t4, $zero, INVALID	# If the value of the character is less than it's not a viable character
+
 CHECK:
 	addi 	$t7, $t7, 1		# Increment the viable character counter by one
 
