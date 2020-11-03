@@ -67,10 +67,16 @@ NUM:
 
 UPPER:
 	slti	$t4, $t5, 91		# Checks if the value represents an uppercase letter
-	beq	$t4, $zero, INCREMENT	# If not check to see if it's a lowercase letter
+	beq	$t4, $zero, LOWER	# If not check to see if it's a lowercase letter
 	slti	$t4, $t5, 65		# Checks the lower bound of the upper case 
 	bne	$t4, $zero, INVALID	# If out of range it is not a viable character
 	addi	$t5, $t5, -55		# Adjusts the value of upper case letter to base N
+	j	CHECK
+
+LOWER:
+	slti	$t4, $t5, 97		# Checks the lower bound of the lower case 
+	bne	$t4, $zero, INVALID	# If out of range it is not a viable character
+	addi	$t5, $t5, -87		# Adjusts the value of lower case letter to base N
 
 CHECK:
 	addi 	$t7, $t7, 1		# Increment the viable character counter by one
