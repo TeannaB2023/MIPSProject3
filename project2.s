@@ -36,9 +36,27 @@ main:
 	div	$t5, $t6		# X % 11
 	mfhi	$t5			# Move the remainder of the division to a register
 	addi	$s0, $t5, 26		# N = (X % 11) + 26
+	jal	CONVERT
+	
 	li	$v0, 1		# Loads value that tells syscall to print
 	lw	$a0, 0($a0)	# Load the sum from memory so it can be printed
 	syscall			# Completes the print instruction
 
 	li	$v0, 10		# Exit program call
 	syscall		
+
+CONVERT:	
+	lb	$t5, 0($a0)		# Load the byte the represents
+	li	$t4, 9			# Loads the ASCII value of TAB
+	beq	$t5, $t4, INCREMENT	# Skips over the conversion if it is TAB
+	li	$t4, 32			# Loads the ASCII value of SPACE
+	beq	$t5, $t4, INCREMENT	# Skips over the conversion if it is SPACE
+
+INCREMENT:
+	addi 	$a0, $a0, 1		# Increments the base address to read the next character
+	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
+	slti 	$t4, $t3, 1000		# Checks to make sure the loop is within the limit
+	bne	$t4, $zero, CONVERT	# If the loop is less than 1000 it continues
+	jr	$ra			# Exit the subprogram
+		
+	
