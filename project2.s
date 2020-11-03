@@ -79,7 +79,11 @@ LOWER:
 	addi	$t5, $t5, -87		# Adjusts the value of lower case letter to base N
 
 CHECK:
+	slt	$t4, $t5, $s0		# Checks if the converted value is less than the base number
+	beq	$t4, $zero, INVALID	# If the value cannot be represented by the base it's not added to the sum
 	addi 	$t7, $t7, 1		# Increment the viable character counter by one
+	li	$t4, 5
+	beq	$t7, $t4, INVALID
 
 INCREMENT:
 	addi 	$a0, $a0, 1		# Increments the base address to read the next character
