@@ -32,6 +32,7 @@ main:
 	
 	add	$t3, $zero, $zero	# Keeps track of the increments for the whole string loop
 	add	$t7, $zero, $zero	# Keeps track of increments for viable characters
+	add	$s1, $zero, $zero	# Initializes the decimal representation of the input
 	la	$a2, id			# Load the address of my id
 	lw	$t5, 0($a2)		# Get the value of the id
 	addi	$t6, $zero, 11		# Initialize the number that will be divide the id
@@ -82,8 +83,11 @@ CHECK:
 	slt	$t4, $t5, $s0		# Checks if the converted value is less than the base number
 	beq	$t4, $zero, INVALID	# If the value cannot be represented by the base it's not added to the sum
 	addi 	$t7, $t7, 1		# Increment the viable character counter by one
-	li	$t4, 5
-	beq	$t7, $t4, INVALID
+	li	$t4, 5			# Load 5 to check if there are more than 4 viable character
+	beq	$t7, $t4, INVALID	# If the viable counter is 5 exit the loop because the input is invalid
+
+STORE:	
+	add	$s1, $s1, $t5		# Add viable character to total (temp)
 
 INCREMENT:
 	addi 	$a0, $a0, 1		# Increments the base address to read the next character
