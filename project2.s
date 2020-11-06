@@ -30,7 +30,7 @@ main:
 	li	$a1, 1001	# Loads the amount of space that is allocated for the input 
 	syscall			# Completes the read string instruction
 	
-	add	$t4, $zero, $zero	# Tab or space flag
+	add	$t4, $zero, $zero	# 
 	add	$t3, $zero, $zero	# Keeps track of the increments for the whole string loop
 	add	$t2, $zero, $zero	# Keeps track of increments for viable characters
 	add	$s1, $zero, $zero	# Initializes the decimal representation of the input
@@ -94,19 +94,28 @@ CHECK:
 	addi 	$t2, $t2, 1		# Increment the viable character counter by one
 	li	$t1, 5			# Load 5 to check if there are more than 4 viable character
 	beq	$t2, $t1, INVALID	# If the viable counter is 5 exit the loop because the input is invalid	
+	addi	$sp, $sp, -4		
+	sw	$t0, 0($sp)
 	
 INCREMENT:
 	addi 	$a0, $a0, 1		# Increments the base address to read the next character
 	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
 	slti 	$t1, $t3, 1000		# Checks to make sure the loop is within the limit
 	bne	$t1, $zero, START	# If the loop is less than 1000 it continues
+
+ADD:
+	lb	$t0, 0($sp)
+	add	$s1, $s1, $t0
+	addi	$sp, $sp, 4
+	addi	$t2, $t2, -1
+	bne	$t2, $zero, ADD
 	j	SUBEXIT
 
 INVALID:
 	li	$s1, 0			# Returns the counter as 0 to represent an invalid statement
 
 SUBEXIT:
-	add	$s1, $t2, $zero		# (temp) Transfer over the relevant register to the saved register
+					#add	$s1, $t2, $zero (temp) Transfer over the relevant register to the saved register
 	jr	$ra			# Exit subprogram
 		
 	
