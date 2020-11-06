@@ -30,6 +30,8 @@ main:
 	li	$a1, 1001	# Loads the amount of space that is allocated for the input 
 	syscall			# Completes the read string instruction
 	
+	add	$t7, $zero, $zero
+	add	$t8, $zero, $zero
 	li	$t4, 1			# Initialize the multiplier for 30^0
 	add	$t3, $zero, $zero	# Keeps track of the increments for the whole string loop
 	add	$t2, $zero, $zero	# Keeps track of increments for viable characters
@@ -62,13 +64,14 @@ START:
 	li	$t1, 10			# Loads the value of the new line character
 	beq	$t0, $t1, ADD	 	# If at the end of the string exit the loop early
 	li	$t1, 9			# Loads the ASCII value of TAB
-	beq	$t0, $t1, INCREMENT	# Skips over the conversion if it is TAB
+	beq	$t0, $t1, BETWEEN	# Skips over the conversion if it is TAB
 	li	$t1, 32			# Loads the ASCII value of SPACE
-	beq	$t0, $t1, INCREMENT	# Skips over the conversion if it is SPACE
+	beq	$t0, $t1, BETWEEN	# Skips over the conversion if it is SPACE
 
 CONVERT:
 	slti	$t1, $t0, 48		# Evaluates if the ASCII value could be a number or letter
 	bne	$t1, $zero, INVALID	# If the value of the character is less than it's not a viable character
+	bne,	$t8, $zero, INVALID	# If there is a tab or space in between the character the input is invalid
 NUM:
 	slti	$t1, $t0, 58		# Checks if the value represents a number
 	beq	$t1, $zero, UPPER	# If not check to see if it's an uppercase letter
@@ -96,6 +99,13 @@ CHECK:
 	beq	$t2, $t1, INVALID	# If the viable counter is 5 exit the loop because the input is invalid	
 	addi	$sp, $sp, -4		# Open the stack by a word
 	sw	$t0, 0($sp)		# Store the convert value to the stack
+	li	$t7, 1			# Turn the viable character flag "on"
+	j	INCREMENT
+
+BETWEEN:
+	beq	$t7, $zero, INCREMENT	# If the viable character flag is off ignore the between flag
+	li	$t8, 1			# Turn the between tabs and spaces flag "on"
+	
 	
 INCREMENT:
 	addi 	$a0, $a0, 1		# Increments the base address to read the next character
@@ -112,9 +122,9 @@ ADD:
 	addi	$t2, $t2, -1		# Reduces the counter by 1
 	mult	$t4, $s0		# Increase the multiplier by a factor of 30
 	mflo	$t4			# Load the updated value to the multiplier
-	li	$t3, 1
+	li	$t3, 1			# Load the limit of the loop counter
 	slt	$t1, $t2, $t3		# Continues to add values to the sum register for the number of viable characters counted
-	beq	$t1, $zero, ADD
+	beq	$t1, $zero, ADD		# If the counter is greater than 1, continue looping
 	j	SUBEXIT
 
 INVALID:
