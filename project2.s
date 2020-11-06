@@ -30,7 +30,6 @@ main:
 	li	$a1, 1001	# Loads the amount of space that is allocated for the input 
 	syscall			# Completes the read string instruction
 	
-	add	$t4, $zero, $zero	# 
 	add	$t3, $zero, $zero	# Keeps track of the increments for the whole string loop
 	add	$t2, $zero, $zero	# Keeps track of increments for viable characters
 	add	$s1, $zero, $zero	# Initializes the decimal representation of the input
@@ -60,9 +59,9 @@ EXIT:
 START:	
 	lb	$t0, 0($a0)		# Load the byte that represents a character from the input string
 	li	$t1, 10			# Loads the value of the new line character
-	beq	$t0, $t1, SUBEXIT 	# If at the end of the string exit the loop early
+	beq	$t0, $t1, ADD	 	# If at the end of the string exit the loop early
 	li	$t1, 9			# Loads the ASCII value of TAB
-	beq	$t0, $t1, INCREMENT		# Skips over the conversion if it is TAB
+	beq	$t0, $t1, INCREMENT	# Skips over the conversion if it is TAB
 	li	$t1, 32			# Loads the ASCII value of SPACE
 	beq	$t0, $t1, INCREMENT	# Skips over the conversion if it is SPACE
 
