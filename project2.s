@@ -93,8 +93,8 @@ CHECK:
 	addi 	$t2, $t2, 1		# Increment the viable character counter by one
 	li	$t1, 5			# Load 5 to check if there are more than 4 viable character
 	beq	$t2, $t1, INVALID	# If the viable counter is 5 exit the loop because the input is invalid	
-	addi	$sp, $sp, -4		
-	sw	$t0, 0($sp)
+	addi	$sp, $sp, -4		# Open the stack by a word
+	sw	$t0, 0($sp)		# Store the convert value to the stack
 	
 INCREMENT:
 	addi 	$a0, $a0, 1		# Increments the base address to read the next character
@@ -102,19 +102,23 @@ INCREMENT:
 	slti 	$t1, $t3, 1000		# Checks to make sure the loop is within the limit
 	bne	$t1, $zero, START	# If the loop is less than 1000 it continues
 
+	li	$t1, 1			# Initialize the multiplier for 30^0
 ADD:
-	lb	$t0, 0($sp)
-	add	$s1, $s1, $t0
-	addi	$sp, $sp, 4
-	addi	$t2, $t2, -1
-	bne	$t2, $zero, ADD
+	lb	$t0, 0($sp)		# Loads the base 30 value from the stack (FILO)
+	mult	$t0, $t1		# Multiply the base 30 value by the correct base multiplier
+	mflo	$t0			# Load the product to the register
+	add	$s1, $s1, $t0		# Adds the value to the sum register
+	addi	$sp, $sp, 4		# Pops the value that was just loaded
+	addi	$t2, $t2, -1		# Reduces the counter by 1
+	mult	$t1, $s0		# Increase the multiplier by a factor of 30
+	mflo	$t1			# Load the updated value to the multiplier
+	bne	$t2, $zero, ADD		# Continues to add values to the sum register for the number of viable characters counted
 	j	SUBEXIT
 
 INVALID:
 	li	$s1, 0			# Returns the counter as 0 to represent an invalid statement
 
 SUBEXIT:
-					#add	$s1, $t2, $zero (temp) Transfer over the relevant register to the saved register
 	jr	$ra			# Exit subprogram
 		
 	
