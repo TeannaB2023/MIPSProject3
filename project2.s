@@ -20,7 +20,7 @@
 	.data # This is the section to declare variables that will be used in the program
 	x: .space 1001 		# The space for the input is initialized (will only read 1000 characters endline)
 	id: .word 02924893	# Defines the value of Teanna Barrett's id
-	invalid: .asciiz "Invalid input" # Value that should be printed if the input is invalid
+	invalid: .asciiz "Invalid input\n" # Value that should be printed if the input is invalid
 
 	.text # This is the section where the instructions will be written
 	.globl main
@@ -62,7 +62,7 @@ EXIT:
 START:	
 	lb	$t0, 0($a0)		# Load the byte that represents a character from the input string
 	li	$t1, 10			# Loads the value of the new line character
-	beq	$t0, $t1, ADD	 	# If at the end of the string exit the loop early
+	beq	$t0, $t1, ADD	 	# If at the end of the string exit the loop early (new line/enter)
 	li	$t1, 9			# Loads the ASCII value of TAB
 	beq	$t0, $t1, BETWEEN	# Skips over the conversion if it is TAB
 	li	$t1, 32			# Loads the ASCII value of SPACE
