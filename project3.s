@@ -1,17 +1,21 @@
-#################################################MIPS_Project2
-# Gets a string from user, reads it, converts the string to base
-# 30 then prints out the decimal conversion of the base 30 value.
-# The base is 30 based on a simple calculation with my id #. The 
+#################################################MIPS_Project3
+# Gets a string from user, This string can contain substrings 
+# that are separated by a comma. When the input string is passed 
+# into a subprogram, a nested program reads each substring.
+# Then the substring is converted to base 30. Then the substring 
+# base 30 value is converted to decimal. If the substring cannot
+# be coverted an invalid message will be stored. The base is 30 
+# based on a simple calculation with my id #. A substring in the
 # input will be invalid if there are more than 4 characters, has an
 # out of range character or is empty after all spaces and tabs are removed.
 #
-# Arg registers used: $a0, $a1, $a2, $a3
+# Arg registers used: $a0, $a1, $a2
 # Tmp registers used: $t0, $t1, $t2, $t3, $t4, $t5
 # Save registers used: $s0, $s1
-# Value registers used: $v0, $v1
+# Value registers used: $v0
 #
 # Pre: none
-# Post: $v1 contains the return value
+# Post: $v0 contains the return value
 # Returns: the decimal value of a viable string input in base 30
 #
 # Called by: main
@@ -20,7 +24,7 @@
 	.data # This is the section to declare variables that will be used in the program
 	x: .space 1001 		# The space for the input is initialized (will only read 1000 characters endline)
 	id: .word 02924893	# Defines the value of Teanna Barrett's id
-	invalid: .asciiz "Invalid input\n" # Value that should be printed if the input is invalid
+	invalid: .asciiz "NaN\n" # Value that should be printed if the input is invalid
 
 	.text # This is the section where the instructions will be written
 	.globl main
