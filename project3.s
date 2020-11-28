@@ -15,7 +15,7 @@
 # Value registers used: $v0
 #
 # Pre: none
-# Post: $v0 contains the return value
+# Post: $v1 contains the return value
 # Returns: the decimal value of a viable string input in base 30
 #
 # Called by: main
@@ -39,7 +39,7 @@ main:
 	li	$t4, 1			# Initialize the multiplier for 30^0
 	add	$t3, $zero, $zero	# Keeps track of the increments for the whole string loop
 	add	$t2, $zero, $zero	# Keeps track of increments for viable characters
-	add	$s1, $zero, $zero	# Initializes the decimal representation of the input
+	add	$v1, $zero, $zero	# Initializes the decimal representation of the input
 	la	$a2, id			# Load the address of my id
 	lw	$t5, 0($a2)		# Get the value of the id
 	addi	$t6, $zero, 11		# Initialize the number that will be divide the id
@@ -48,9 +48,9 @@ main:
 	addi	$s0, $t5, 26		# N = (X % 11) + 26
 	jal	START
 
-	blt	$s1, $zero, PRINVALID	# Checks if the subprogram found the input invalid
+	blt	$v1, $zero, PRINVALID	# Checks if the subprogram found the input invalid
 	li	$v0, 1			# Loads value that tells syscall to print
-	add	$a0, $s1, $zero		# Load the sum from memory so it can be printed
+	add	$a0, $v1, $zero		# Load the sum from memory so it can be printed
 	syscall				# Completes the print instruction
 	j	EXIT
 
@@ -118,10 +118,11 @@ INCREMENT:
 	bne	$t1, $zero, START	# If the loop is less than 1000 it continues
 
 ADD:
+	beq	$t2, $zero, INVALID	# If no viable characters were collected in the whole input it is invalid
 	lb	$t0, 0($sp)		# Loads the base 30 value from the stack (FILO)
 	mult	$t0, $t4		# Multiply the base 30 value by the correct base multiplier
 	mflo	$t0			# Load the product to the register
-	add	$s1, $s1, $t0		# Adds the value to the sum register
+	add	$v1, $v1, $t0		# Adds the value to the sum register
 	addi	$sp, $sp, 4		# Pops the value that was just loaded
 	addi	$t2, $t2, -1		# Reduces the counter by 1
 	mult	$t4, $s0		# Increase the multiplier by a factor of 30
@@ -132,7 +133,7 @@ ADD:
 	j	SUBEXIT
 
 INVALID:
-	li	$s1, -1			# Returns the sum as -1 to represent an invalid statement
+	li	$v1, -1			# Returns the sum as -1 to represent an invalid statement
 
 SUBEXIT:
 	jr	$ra			# Exit subprogram
