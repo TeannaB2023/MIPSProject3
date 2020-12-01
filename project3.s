@@ -51,9 +51,14 @@ INIT:
 	add	$v1, $zero, $zero	# Initializes the decimal representation of the input
 
 INTOSTACK:
+	lb	$t0, 0($a0)		# Load the byte that represents a character from the input string
+	beq	$t0, $zero, CENTRAL
+	addi	$sp, $zero, -1
+	sb	$t0, 0($sp)
+	j	INTOSTACK
 	
+CENTRAL:
 	jal	SUBPROGRAMC		# Calls base 30 conversion program
-
 	blt	$v1, $zero, PRINVALID	# Checks if the subprogram found the input invalid
 	li	$v0, 1			# Loads value that tells syscall to print
 	add	$a0, $v1, $zero		# Load the sum from memory so it can be printed
