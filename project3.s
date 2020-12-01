@@ -33,20 +33,26 @@ main:
 	la	$a0, x		# Loads the address of the string input to $a0 register
 	li	$a1, 1001	# Loads the amount of space that is allocated for the input 
 	syscall			# Completes the read string instruction
-	
-	add	$t7, $zero, $zero
-	add	$t8, $zero, $zero
-	li	$t4, 1			# Initialize the multiplier for 30^0
-	add	$t3, $zero, $zero	# Keeps track of the increments for the whole string loop
-	add	$t2, $zero, $zero	# Keeps track of increments for viable characters
-	add	$v1, $zero, $zero	# Initializes the decimal representation of the input
+
+ID:
 	la	$a2, id			# Load the address of my id
 	lw	$t5, 0($a2)		# Get the value of the id
 	addi	$t6, $zero, 11		# Initialize the number that will be divide the id
 	div	$t5, $t6		# X % 11
 	mfhi	$t5			# Move the remainder of the division to a register
 	addi	$s0, $t5, 26		# N = (X % 11) + 26
-	jal	START
+	
+INIT:
+	add	$t7, $zero, $zero	# Initialize flag for viable character collection
+	add	$t8, $zero, $zero	# Initialize flag for sandwiched tabs and spaces
+	li	$t4, 1			# Initialize the multiplier for 30^0
+	add	$t3, $zero, $zero	# Keeps track of the increments for the whole string loop
+	add	$t2, $zero, $zero	# Keeps track of increments for viable characters
+	add	$v1, $zero, $zero	# Initializes the decimal representation of the input
+
+INTOSTACK:
+	
+	jal	SUBPROGRAMC		# Calls base 30 conversion program
 
 	blt	$v1, $zero, PRINVALID	# Checks if the subprogram found the input invalid
 	li	$v0, 1			# Loads value that tells syscall to print
@@ -63,7 +69,7 @@ EXIT:
 	li	$v0, 10		# Exit program call
 	syscall		
 
-START:	
+SUBPROGRAMC:	
 	lb	$t0, 0($a0)		# Load the byte that represents a character from the input string
 	li	$t1, 10			# Loads the value of the new line character
 	beq	$t0, $t1, ADD	 	# If at the end of the string exit the loop early (new line/enter)
@@ -115,7 +121,7 @@ INCREMENT:
 	addi 	$a0, $a0, 1		# Increments the base address to read the next character
 	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
 	slti 	$t1, $t3, 1000		# Checks to make sure the loop is within the limit
-	bne	$t1, $zero, START	# If the loop is less than 1000 it continues
+	bne	$t1, $zero, SUBPROGRAMC	# If the loop is less than 1000 it continues
 
 ADD:
 	beq	$t2, $zero, INVALID	# If no viable characters were collected in the whole input it is invalid
