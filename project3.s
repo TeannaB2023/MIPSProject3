@@ -55,9 +55,17 @@ INTOSTACK:
 	beq	$t0, $zero, CENTRAL
 	addi	$sp, $zero, -1
 	sb	$t0, 0($sp)
-	j	INTOSTACK
+	addi	$t3, $t3, 1
+	li	$t1, 1000
+	blt	$t3, $t1, INTOSTACK
+	li	$t1, 4
+	div	$t3, $t1
+	mfhi	$t1
+	beq	$t1, $zero, CENTRAL
+	sb	$zero, 0($sp)
 	
 CENTRAL:
+	sw	$fp, 0($sp)
 	jal	SUBPROGRAMC		# Calls base 30 conversion program
 	blt	$v1, $zero, PRINVALID	# Checks if the subprogram found the input invalid
 	li	$v0, 1			# Loads value that tells syscall to print
