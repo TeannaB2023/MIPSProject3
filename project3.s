@@ -52,20 +52,27 @@ INIT:
 
 INTOSTACK:
 	lb	$t0, 0($a0)		# Load the byte that represents a character from the input string
-	beq	$t0, $zero, CENTRAL
-	addi	$sp, $zero, -1
+	beq	$t0, $zero, ALIGN
+	addi	$sp, $sp, -1
 	sb	$t0, 0($sp)
 	addi	$t3, $t3, 1
 	li	$t1, 1000
 	blt	$t3, $t1, INTOSTACK
+
+ALIGN:
 	li	$t1, 4
 	div	$t3, $t1
 	mfhi	$t1
+	add	$s1, $zero, $t1
 	beq	$t1, $zero, CENTRAL
+	addi	$sp, $zero, -1
 	sb	$zero, 0($sp)
+	addi	$t1, $t1, -1
 	
 CENTRAL:
+	add	$s1, $s1, $t3
 	sw	$fp, 0($sp)
+	li	$t1, 0
 	jal	SUBPROGRAMC		# Calls base 30 conversion program
 	blt	$v1, $zero, PRINVALID	# Checks if the subprogram found the input invalid
 	li	$v0, 1			# Loads value that tells syscall to print
@@ -83,7 +90,7 @@ EXIT:
 	syscall		
 
 SUBPROGRAMC:	
-	lb	$t0, 0($a0)		# Load the byte that represents a character from the input string
+	lb	$t0, 0($sp)		# Load the byte that represents a character from the input string
 	li	$t1, 10			# Loads the value of the new line character
 	beq	$t0, $t1, ADD	 	# If at the end of the string exit the loop early (new line/enter)
 	li	$t1, 9			# Loads the ASCII value of TAB
@@ -120,8 +127,8 @@ CHECK:
 	addi 	$t2, $t2, 1		# Increment the viable character counter by one
 	li	$t1, 5			# Load 5 to check if there are more than 4 viable character
 	beq	$t2, $t1, INVALID	# If the viable counter is 5 exit the loop because the input is invalid	
-	addi	$sp, $sp, -4		# Open the stack by a word
-	sw	$t0, 0($sp)		# Store the convert value to the stack
+	addi	$fp, $fp, -4		# Open the stack by a word
+	sw	$t0, 0($fp)		# Store the convert value to the stack
 	li	$t7, 1			# Turn the viable character flag "on"
 	j	INCREMENT
 
@@ -129,20 +136,19 @@ BETWEEN:
 	beq	$t7, $zero, INCREMENT	# If the viable character flag is off ignore the between flag
 	li	$t8, 1			# Turn the between tabs and spaces flag "on"
 	
-	
 INCREMENT:
-	addi 	$a0, $a0, 1		# Increments the base address to read the next character
+	addi 	$sp, $sp, -1		# Increments the base address to read the next character
 	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
 	slti 	$t1, $t3, 1000		# Checks to make sure the loop is within the limit
 	bne	$t1, $zero, SUBPROGRAMC	# If the loop is less than 1000 it continues
 
 ADD:
 	beq	$t2, $zero, INVALID	# If no viable characters were collected in the whole input it is invalid
-	lb	$t0, 0($sp)		# Loads the base 30 value from the stack (FILO)
+	lb	$t0, 0($fp)		# Loads the base 30 value from the stack (FILO)
 	mult	$t0, $t4		# Multiply the base 30 value by the correct base multiplier
 	mflo	$t0			# Load the product to the register
 	add	$v1, $v1, $t0		# Adds the value to the sum register
-	addi	$sp, $sp, 4		# Pops the value that was just loaded
+	addi	$fp, $fp, 4		# Pops the value that was just loaded
 	addi	$t2, $t2, -1		# Reduces the counter by 1
 	mult	$t4, $s0		# Increase the multiplier by a factor of 30
 	mflo	$t4			# Load the updated value to the multiplier
