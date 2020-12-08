@@ -73,7 +73,7 @@ ALIGN:
 	
 CENTRAL:
 	add	$s1, $zero, $t3		# Move the length of the string in the stack to a save register
-	la	$t5, 0($sp)
+	la	$gp, 0($sp)
 	li	$t3, 0			# Reinitialize the temp register to zero
 	jal	SUBPROGRAMC		# Calls base 30 conversion program
 	blt	$v1, $zero, PRINVALID	# Checks if the subprogram found the input invalid
@@ -92,7 +92,7 @@ EXIT:
 	syscall		
 
 SUBPROGRAMC:	
-	lb	$t0, 0($t5)		# Load the byte that represents a character from the input string
+	lb	$t0, 0($gp)		# Load the byte that represents a character from the input string
 	beq	$t0, $zero, INCREMENT	# Skip over the filler bytes in stack
 	li	$t1, 9			# Loads the ASCII value of TAB
 	beq	$t0, $t1, BETWEEN	# Skips over the conversion if it is TAB
@@ -138,7 +138,7 @@ BETWEEN:
 	li	$t8, 1			# Turn the between tabs and spaces flag "on"
 	
 INCREMENT:
-	addi 	$t5, $t5, 1		# Increments the base address to read the next character
+	addi 	$gp, $gp, 1		# Increments the base address to read the next character
 	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
 	slt 	$t1, $t3, $s1		# Checks to make sure the loop is within the limit
 	bne	$t1, $zero, SUBPROGRAMC	# If the loop is less than 1000 it continues
