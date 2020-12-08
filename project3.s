@@ -53,8 +53,8 @@ INIT:
 INTOSTACK:
 	lb	$t0, 0($a0)		# Load the byte that represents a character from the input string
 	li	$t1, 10			# Load the value of the newline
-	addi	$t3, $t3, 1		# Increment the input string counter
 	beq	$t0, $t1, ALIGN		# If the value is the newline move on to check alignment
+	addi	$t3, $t3, 1		# Increment the input string counter
 	addi	$sp, $sp, -1		# Move down the stack by one byte
 	sb	$t0, 0($sp)		# Store the value of character to the stack
 	addi	$a0, $a0, 1		# Increment the memory address for the string
@@ -69,12 +69,11 @@ ALIGN:
 	addi	$sp, $sp, -1		# Else Move down the stack
 	sb	$zero, 0($sp)		# Store the zero value to the filler 
 	addi	$t3, $t3, 1		# Increment the string length by 1
-	addi	$t1, $t1, -1		# Reduce the remainder by 1
-	bne	$t1, $zero, ALIGN	# Check if more filler space needs to be added
+	j ALIGN				# Check if more filler space needs to be added
 	
 CENTRAL:
 	add	$s1, $zero, $t3		# Move the length of the string in the stack to a save register
-	add	$fp, $sp, $s1		# Mark the top of the stack with the frame pointer
+	la	$t5, 0($sp)
 	li	$t3, 0			# Reinitialize the temp register to zero
 	jal	SUBPROGRAMC		# Calls base 30 conversion program
 	blt	$v1, $zero, PRINVALID	# Checks if the subprogram found the input invalid
@@ -93,9 +92,8 @@ EXIT:
 	syscall		
 
 SUBPROGRAMC:	
-	lb	$t0, 0($fp)		# Load the byte that represents a character from the input string
-	li	$t1, 10			# Loads the value of the new line character
-	beq	$t0, $t1, ADD	 	# If at the end of the string exit the loop early (new line/enter)
+	lb	$t0, 0($t5)		# Load the byte that represents a character from the input string
+	beq	$t0, $zero, INCREMENT	# Skip over the filler bytes in stack
 	li	$t1, 9			# Loads the ASCII value of TAB
 	beq	$t0, $t1, BETWEEN	# Skips over the conversion if it is TAB
 	li	$t1, 32			# Loads the ASCII value of SPACE
@@ -140,13 +138,13 @@ BETWEEN:
 	li	$t8, 1			# Turn the between tabs and spaces flag "on"
 	
 INCREMENT:
-	addi 	$fp, $fp, 1		# Increments the base address to read the next character
+	addi 	$t5, $t5, 1		# Increments the base address to read the next character
 	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
 	slt 	$t1, $t3, $s1		# Checks to make sure the loop is within the limit
 	bne	$t1, $zero, SUBPROGRAMC	# If the loop is less than 1000 it continues
 
 ADD:
-	beq	$t2, $zero, INVALID	# If no viable characters were collected in the whole input it is invalid
+	#beq	$t2, $zero, INVALID	 If no viable characters were collected in the whole input it is invalid
 	lw	$t0, 0($sp)		# Loads the base 30 value from the stack (FILO)
 	mult	$t0, $t4		# Multiply the base 30 value by the correct base multiplier
 	mflo	$t0			# Load the product to the register
