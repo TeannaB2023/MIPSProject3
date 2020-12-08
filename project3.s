@@ -144,14 +144,14 @@ INCREMENT:
 	bne	$t1, $zero, SUBPROGRAMC	# If the loop is less than 1000 it continues
 
 SETUP:	
-	beq	$t2, $zero, INVALID	#If no viable characters were collected in the whole input it is invalid
-	add	$t1, $t2, -1
+	beq	$t2, $zero, INVALID	# If no viable characters were collected in the whole input it is invalid
+	add	$t1, $t2, -1		# Load highest exponent value to temp register
 
 MULTIPLIER:
-	mult	$t4, $s0
-	mflo	$t4
-	addi	$t1, $t1, -1
-	bne	$t1, $zero, MULTIPLIER
+	mult	$t4, $s0		# Multiply base multiplier by 30		
+	mflo	$t4			# Update the base 
+	addi	$t1, $t1, -1		# Decrement highest exponent
+	bne	$t1, $zero, MULTIPLIER	# Keep going until the multiplier for the highest exponent is represented
 
 ADD:
 	lw	$t0, 0($sp)		# Loads the base 30 value from the stack (FILO)
@@ -160,7 +160,7 @@ ADD:
 	add	$v1, $v1, $t0		# Adds the value to the sum register
 	addi	$sp, $sp, 4		# Pops the value that was just loaded
 	addi	$t2, $t2, -1		# Reduces the counter by 1
-	div	$t4, $s0		# Increase the multiplier by a factor of 30
+	div	$t4, $s0		# Decrease the multiplier by a factor of 30
 	mflo	$t4			# Move the updated value to the multiplier
 	li	$t3, 1			# Load the limit of the loop counter
 	slt	$t1, $t2, $t3		# Continues to add values to the sum register for the number of viable characters counted
