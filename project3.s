@@ -45,7 +45,7 @@ ID:
 INIT:
 	add	$t7, $zero, $zero	# Initialize flag for viable character collection
 	add	$t8, $zero, $zero	# Initialize flag for sandwiched tabs and spaces
-	li	$t4, 1			# Initialize the multiplier for 30^0
+	li	$t4, 1			# Initialize the multiplier for 30^2
 	add	$t3, $zero, $zero	# Keeps track of the increments for the whole string loop
 	add	$t2, $zero, $zero	# Keeps track of increments for viable characters
 	add	$v1, $zero, $zero	# Initializes the decimal representation of the input
@@ -143,15 +143,24 @@ INCREMENT:
 	slt 	$t1, $t3, $s1		# Checks to make sure the loop is within the limit
 	bne	$t1, $zero, SUBPROGRAMC	# If the loop is less than 1000 it continues
 
+SETUP:	
+	beq	$t2, $zero, INVALID	#If no viable characters were collected in the whole input it is invalid
+	add	$t1, $t2, -1
+
+MULTIPLIER:
+	mult	$t4, $s0
+	mflo	$t4
+	addi	$t1, $t1, -1
+	bne	$t1, $zero, MULTIPLIER
+
 ADD:
-	#beq	$t2, $zero, INVALID	 If no viable characters were collected in the whole input it is invalid
 	lw	$t0, 0($sp)		# Loads the base 30 value from the stack (FILO)
 	mult	$t0, $t4		# Multiply the base 30 value by the correct base multiplier
 	mflo	$t0			# Load the product to the register
 	add	$v1, $v1, $t0		# Adds the value to the sum register
 	addi	$sp, $sp, 4		# Pops the value that was just loaded
 	addi	$t2, $t2, -1		# Reduces the counter by 1
-	mult	$t4, $s0		# Increase the multiplier by a factor of 30
+	div	$t4, $s0		# Increase the multiplier by a factor of 30
 	mflo	$t4			# Move the updated value to the multiplier
 	li	$t3, 1			# Load the limit of the loop counter
 	slt	$t1, $t2, $t3		# Continues to add values to the sum register for the number of viable characters counted
@@ -159,7 +168,7 @@ ADD:
 	j	SUBEXIT
 
 INVALID:
-	li	$v1, -1			# Returns the sum as -1 to represent an invalid statement
+	li	$v1, -1			# Returns the sum as -1 to represent the invalid statement
 
 SUBEXIT:
 	jr	$ra			# Exit subprogram
