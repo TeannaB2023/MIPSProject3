@@ -52,31 +52,34 @@ INIT:
 
 INTOSTACK:
 	lb	$t0, 0($a0)		# Load the byte that represents a character from the input string
-	beq	$t0, $zero, ALIGN
-	addi	$sp, $sp, -1
-	sb	$t0, 0($sp)
-	addi	$t3, $t3, 1
-	li	$t1, 1000
-	blt	$t3, $t1, INTOSTACK
+	li	$t1, 10			# Load the value of the newline
+	addi	$t3, $t3, 1		# Increment the input string counter
+	beq	$t0, $t1, ALIGN		# If the value is the newline move on to check alignment
+	addi	$sp, $sp, -1		# Move down the stack by one byte
+	sb	$t0, 0($sp)		# Store the value of character to the stack
+	addi	$a0, $a0, 1		# Increment the memory address for the string
+	li	$t1, 1001		# (try) Load the max length of the input string
+	blt	$t3, $t1, INTOSTACK	# If the counter is less than the limit continue looping
 
 ALIGN:
-	li	$t1, 4
-	div	$t3, $t1
-	mfhi	$t1
-	add	$s1, $zero, $t1
-	beq	$t1, $zero, CENTRAL
-	addi	$sp, $zero, -1
-	sb	$zero, 0($sp)
-	addi	$t1, $t1, -1
+	li	$t1, 4			# Load the value of 4 (represents a word)
+	div	$t3, $t1		# Divide the length of the string in the stack by 4	
+	mfhi	$t1			# Move the remainder to a register
+	beq	$t1, $zero, CENTRAL	# If the remainder is 0 move on to central program
+	addi	$sp, $sp, -1		# Else Move down the stack
+	sb	$zero, 0($sp)		# Store the zero value to the filler 
+	addi	$t3, $t3, 1		# Increment the string length by 1
+	addi	$t1, $t1, -1		# Reduce the remainder by 1
+	bne	$t1, $zero, ALIGN	# Check if more filler space needs to be added
 	
 CENTRAL:
-	add	$s1, $s1, $t3
-	sw	$fp, 0($sp)
-	li	$t1, 0
+	add	$s1, $zero, $t3		# Move the length of the string in the stack to a save register
+	add	$fp, $sp, $s1		# Mark the top of the stack with the frame pointer
+	li	$t3, 0			# Reinitialize the temp register to zero
 	jal	SUBPROGRAMC		# Calls base 30 conversion program
 	blt	$v1, $zero, PRINVALID	# Checks if the subprogram found the input invalid
 	li	$v0, 1			# Loads value that tells syscall to print
-	add	$a0, $v1, $zero		# Load the sum from memory so it can be printed
+	add	$a0, $v1, $zero		# Load the sum to memory so it can be printed
 	syscall				# Completes the print instruction
 	j	EXIT
 
@@ -90,7 +93,7 @@ EXIT:
 	syscall		
 
 SUBPROGRAMC:	
-	lb	$t0, 0($sp)		# Load the byte that represents a character from the input string
+	lb	$t0, 0($fp)		# Load the byte that represents a character from the input string
 	li	$t1, 10			# Loads the value of the new line character
 	beq	$t0, $t1, ADD	 	# If at the end of the string exit the loop early (new line/enter)
 	li	$t1, 9			# Loads the ASCII value of TAB
@@ -127,8 +130,8 @@ CHECK:
 	addi 	$t2, $t2, 1		# Increment the viable character counter by one
 	li	$t1, 5			# Load 5 to check if there are more than 4 viable character
 	beq	$t2, $t1, INVALID	# If the viable counter is 5 exit the loop because the input is invalid	
-	addi	$fp, $fp, -4		# Open the stack by a word
-	sw	$t0, 0($fp)		# Store the convert value to the stack
+	addi	$sp, $sp, -4		# Open the stack by a word
+	sw	$t0, 0($sp)		# Store the convert value to the stack
 	li	$t7, 1			# Turn the viable character flag "on"
 	j	INCREMENT
 
@@ -137,21 +140,21 @@ BETWEEN:
 	li	$t8, 1			# Turn the between tabs and spaces flag "on"
 	
 INCREMENT:
-	addi 	$sp, $sp, -1		# Increments the base address to read the next character
+	addi 	$fp, $fp, 1		# Increments the base address to read the next character
 	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
-	slti 	$t1, $t3, 1000		# Checks to make sure the loop is within the limit
+	slt 	$t1, $t3, $s1		# Checks to make sure the loop is within the limit
 	bne	$t1, $zero, SUBPROGRAMC	# If the loop is less than 1000 it continues
 
 ADD:
 	beq	$t2, $zero, INVALID	# If no viable characters were collected in the whole input it is invalid
-	lb	$t0, 0($fp)		# Loads the base 30 value from the stack (FILO)
+	lw	$t0, 0($sp)		# Loads the base 30 value from the stack (FILO)
 	mult	$t0, $t4		# Multiply the base 30 value by the correct base multiplier
 	mflo	$t0			# Load the product to the register
 	add	$v1, $v1, $t0		# Adds the value to the sum register
-	addi	$fp, $fp, 4		# Pops the value that was just loaded
+	addi	$sp, $sp, 4		# Pops the value that was just loaded
 	addi	$t2, $t2, -1		# Reduces the counter by 1
 	mult	$t4, $s0		# Increase the multiplier by a factor of 30
-	mflo	$t4			# Load the updated value to the multiplier
+	mflo	$t4			# Move the updated value to the multiplier
 	li	$t3, 1			# Load the limit of the loop counter
 	slt	$t1, $t2, $t3		# Continues to add values to the sum register for the number of viable characters counted
 	beq	$t1, $zero, ADD		# If the counter is greater than 1, continue looping
