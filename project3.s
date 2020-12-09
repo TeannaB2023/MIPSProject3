@@ -24,7 +24,8 @@
 	.data # This is the section to declare variables that will be used in the program
 	x: .space 1001 		# The space for the input is initialized (will only read 1000 characters endline)
 	id: .word 02924893	# Defines the value of Teanna Barrett's id
-	invalid: .asciiz "NaN\n" # Value that should be printed if the input is invalid
+	invalid: .asciiz "NaN" 	# Value that should be printed if the input is invalid
+	comma: .asciiz ","	# Value of comma for the final output
 
 	.text # This is the section where the instructions will be written
 	.globl main
@@ -58,7 +59,7 @@ INTOSTACK:
 	addi	$sp, $sp, -1		# Move down the stack by one byte
 	sb	$t0, 0($sp)		# Store the value of character to the stack
 	addi	$a0, $a0, 1		# Increment the memory address for the string
-	li	$t1, 1001		# (try) Load the max length of the input string
+	li	$t1, 1001		# Load the max length of the input string
 	blt	$t3, $t1, INTOSTACK	# If the counter is less than the limit continue looping
 
 ALIGN:
@@ -73,9 +74,9 @@ ALIGN:
 	
 CENTRAL:
 	add	$s1, $zero, $t3		# Move the length of the string in the stack to a save register
-	la	$gp, 0($sp)
-	li	$t3, 0			# Reinitialize the temp register to zero
-	jal	SUBPROGRAMC		# Calls base 30 conversion program
+	jal	SUBPROGRAMA		# Calls base 30 conversion program
+	lw	$v1, 0($sp)		# Load decimal value from stack
+	addi	$sp, $sp, 4
 	blt	$v1, $zero, PRINVALID	# Checks if the subprogram found the input invalid
 	li	$v0, 1			# Loads value that tells syscall to print
 	add	$a0, $v1, $zero		# Load the sum to memory so it can be printed
@@ -89,49 +90,28 @@ PRINVALID:
 
 EXIT:
 	li	$v0, 10		# Exit program call
-	syscall		
+	syscall	
 
-SUBPROGRAMC:	
+SUBPROGRAMA:
+	la	$gp, 0($sp)		# Load address of the stack to a surface level stack pointer
+	li	$t3, 0			# Reinitialize the temp register to zero
+	jal	SUBPROGRAMB
+	li	$t1, -1
+	mult	$t1, $s1
+	mflo	$t1
+	add	$gp, $gp, $t1
+	jr	$ra		
+
+SUBPROGRAMB:	
 	lb	$t0, 0($gp)		# Load the byte that represents a character from the input string
+	li	$t1, 44
+	beq	$t0, $t1, SETUP
 	beq	$t0, $zero, INCREMENT	# Skip over the filler bytes in stack
 	li	$t1, 9			# Loads the ASCII value of TAB
 	beq	$t0, $t1, BETWEEN	# Skips over the conversion if it is TAB
 	li	$t1, 32			# Loads the ASCII value of SPACE
 	beq	$t0, $t1, BETWEEN	# Skips over the conversion if it is SPACE
-
-CONVERT:
-	slti	$t1, $t0, 48		# Evaluates if the ASCII value could be a number or letter
-	bne	$t1, $zero, INVALID	# If the value of the character is less than it's not a viable character
-	bne,	$t8, $zero, INVALID	# If there is a tab or space in between the character the input is invalid
-NUM:
-	slti	$t1, $t0, 58		# Checks if the value represents a number
-	beq	$t1, $zero, UPPER	# If not check to see if it's an uppercase letter
-	addi	$t0, $t0, -48		# Adjusts the value of number to base N
-	j	CHECK	
-
-UPPER:
-	slti	$t1, $t0, 91		# Checks if the value represents an uppercase letter
-	beq	$t1, $zero, LOWER	# If not check to see if it's a lowercase letter
-	slti	$t1, $t0, 65		# Checks the lower bound of the upper case 
-	bne	$t1, $zero, INVALID	# If out of range it is not a viable character
-	addi	$t0, $t0, -55		# Adjusts the value of upper case letter to base N
-	j	CHECK
-
-LOWER:
-	slti	$t1, $t0, 97		# Checks the lower bound of the lower case 
-	bne	$t1, $zero, INVALID	# If out of range it is not a viable character
-	addi	$t0, $t0, -87		# Adjusts the value of lower case letter to base N
-
-CHECK:
-	slt	$t1, $t0, $s0		# Checks if the converted value is less than the base number
-	beq	$t1, $zero, INVALID	# If the value cannot be represented by the base it's not added to the sum
-	addi 	$t2, $t2, 1		# Increment the viable character counter by one
-	li	$t1, 5			# Load 5 to check if there are more than 4 viable character
-	beq	$t2, $t1, INVALID	# If the viable counter is 5 exit the loop because the input is invalid	
-	addi	$sp, $sp, -4		# Open the stack by a word
-	sw	$t0, 0($sp)		# Store the convert value to the stack
-	li	$t7, 1			# Turn the viable character flag "on"
-	j	INCREMENT
+	jal	SUBPROGRAMC
 
 BETWEEN:
 	beq	$t7, $zero, INCREMENT	# If the viable character flag is off ignore the between flag
@@ -141,11 +121,12 @@ INCREMENT:
 	addi 	$gp, $gp, 1		# Increments the base address to read the next character
 	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
 	slt 	$t1, $t3, $s1		# Checks to make sure the loop is within the limit
-	bne	$t1, $zero, SUBPROGRAMC	# If the loop is less than 1000 it continues
+	bne	$t1, $zero, SUBPROGRAMB	# If the loop is less than string length it continues
 
 SETUP:	
-	beq	$t2, $zero, INVALID	# If no viable characters were collected in the whole input it is invalid
-	add	$t1, $t2, -1		# Load highest exponent value to temp register
+	beq	$t2, $zero, BINVALID	# If no viable characters were collected in the whole input it is invalid
+	addi	$t1, $t2, -1		# Load highest exponent value to temp register
+	add	$v1, $zero, $zero	# Reinitialize the value register to 0
 
 MULTIPLIER:
 	mult	$t4, $s0		# Multiply base multiplier by 30		
@@ -155,6 +136,7 @@ MULTIPLIER:
 
 ADD:
 	lw	$t0, 0($sp)		# Loads the base 30 value from the stack (FILO)
+	blt	$t0, $zero, BINVALID	# If the viable character value is -1 the whole substring is invalid
 	mult	$t0, $t4		# Multiply the base 30 value by the correct base multiplier
 	mflo	$t0			# Load the product to the register
 	add	$v1, $v1, $t0		# Adds the value to the sum register
@@ -165,12 +147,61 @@ ADD:
 	li	$t3, 1			# Load the limit of the loop counter
 	slt	$t1, $t2, $t3		# Continues to add values to the sum register for the number of viable characters counted
 	beq	$t1, $zero, ADD		# If the counter is greater than 1, continue looping
-	j	SUBEXIT
+	j	BEXIT
 
-INVALID:
-	li	$v1, -1			# Returns the sum as -1 to represent the invalid statement
+BINVALID:
+	li	$t1, 4			# Load the word multiplier
+	mult	$t2, $t1		# Multiply the number of viable characters in the stack by word multiplier
+	mflo	$t1			# Move the product to temp register
+	add	$sp, $sp, $t1		# Pop the rest of the charcter values
+	addi	$v1, $zero, -1		# Put the invalid value into stack for the substring value
 
-SUBEXIT:
-	jr	$ra			# Exit subprogram
+BEXIT:	
+	sw	$v1, 0($sp)		# Store decimal value of substring in stack
+	jr	$ra			# Exit subprogram B
+
+SUBPROGRAMC:
+	lb	$t0, 0($gp)		# Load the byte that represents a character from the input string
+	slti	$t1, $t0, 48		# Evaluates if the ASCII value could be a number or letter
+	bne	$t1, $zero, CINVALID	# If the value of the character is less than it's not a viable character
+	bne	$t8, $zero, CINVALID	# If there is a tab or space in between the character the input is invalid
+NUM:
+	slti	$t1, $t0, 58		# Checks if the value represents a number
+	beq	$t1, $zero, UPPER	# If not check to see if it's an uppercase letter
+	addi	$t0, $t0, -48		# Adjusts the value of number to base N
+	j	CHECK	
+
+UPPER:
+	slti	$t1, $t0, 91		# Checks if the value represents an uppercase letter
+	beq	$t1, $zero, LOWER	# If not check to see if it's a lowercase letter
+	slti	$t1, $t0, 65		# Checks the lower bound of the upper case 
+	bne	$t1, $zero, CINVALID	# If out of range it is not a viable character
+	addi	$t0, $t0, -55		# Adjusts the value of upper case letter to base N
+	j	CHECK
+
+LOWER:
+	slti	$t1, $t0, 97		# Checks the lower bound of the lower case 
+	bne	$t1, $zero, CINVALID	# If out of range it is not a viable character
+	addi	$t0, $t0, -87		# Adjusts the value of lower case letter to base N
+
+CHECK:
+	slt	$t1, $t0, $s0		# Checks if the converted value is less than the base number
+	beq	$t1, $zero, CINVALID	# If the value cannot be represented by the base it's not added to the sum
+	addi 	$t2, $t2, 1		# Increment the viable character counter by one
+	li	$t1, 5			# Load 5 to check if there are more than 4 viable characters
+	beq	$t2, $t1, CINVALID	# If the viable counter is 5 exit the loop because the input is invalid	
+	addi	$sp, $sp, -4		# Open the stack by a word
+	sw	$t0, 0($sp)		# Store the convert value to the stack
+	li	$t7, 1			# Turn the viable character flag "on"
+	j	CEXIT			# Jump to exit subprogram C
+
+CINVALID:
+	li	$t1, -1			# Load -1 to represent an invalid character
+	addi	$sp, $sp, -4		# Open the stack by a word
+	sw	$t1, 0($sp)		# Store the convert value to the stack	
+CEXIT:
+	jr 	$ra			# Exit subprogram C
+
+
 		
 	
