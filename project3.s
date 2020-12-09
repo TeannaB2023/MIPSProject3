@@ -50,8 +50,6 @@ INIT:
 	add	$t3, $zero, $zero	# Keeps track of the increments for the whole string loop
 	add	$t2, $zero, $zero	# Keeps track of increments for viable characters
 	add	$v1, $zero, $zero	# Initializes the decimal representation of the input
-	addi	$sp, $sp, -4
-	sw	$ra, 0($sp)
 
 INTOSTACK:
 	lb	$t0, 0($a0)		# Load the byte that represents a character from the input string
@@ -72,12 +70,13 @@ ALIGN:
 	addi	$sp, $sp, -1		# Else Move down the stack
 	sb	$zero, 0($sp)		# Store the zero value to the filler 
 	addi	$t3, $t3, 1		# Increment the string length by 1
-	j ALIGN				# Check if more filler space needs to be added
+	j	ALIGN			# Check if more filler space needs to be added
 	add	$s1, $zero, $t3		# Move the length of the string in the stack to a save register
 
 CENTRAL:
-	la	$gp, 0($sp)		# Load address of the stack to a surface level stack pointer
 	jal	SUBPROGRAMA		# Calls base 30 conversion program
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)
 	lw	$v1, 0($sp)		# Load decimal value from stack
 	addi	$sp, $sp, 4
 	blt	$v1, $zero, PRINVALID	# Checks if the subprogram found the input invalid
@@ -98,11 +97,13 @@ EXIT:
 SUBPROGRAMA:	
 	add	$t3, $zero, $zero	# Reinitialize the temp register to zero
 	jal	SUBPROGRAMB
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)
 	add	$t1, $sp, $s1
-	blt	$gp, $t1, SUBPROGRAMA
 	jr	$ra		
 
 SUBPROGRAMB:	
+	la	$gp, 0($sp)
 	lb	$t0, 0($gp)		# Load the byte that represents a character from the input string
 	li	$t1, 44			# Load value of comma to temp register
 	beq	$t0, $t1, SETUP		# If the character is a comma 
@@ -112,6 +113,8 @@ SUBPROGRAMB:
 	li	$t1, 32			# Loads the ASCII value of SPACE
 	beq	$t0, $t1, BETWEEN	# Skips over the conversion if it is SPACE
 	jal	SUBPROGRAMC
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)
 
 BETWEEN:
 	beq	$t7, $zero, INCREMENT	# If the viable character flag is off ignore the between flag
