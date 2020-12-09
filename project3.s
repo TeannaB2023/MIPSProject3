@@ -50,6 +50,8 @@ INIT:
 	add	$t3, $zero, $zero	# Keeps track of the increments for the whole string loop
 	add	$t2, $zero, $zero	# Keeps track of increments for viable characters
 	add	$v1, $zero, $zero	# Initializes the decimal representation of the input
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)
 
 INTOSTACK:
 	lb	$t0, 0($a0)		# Load the byte that represents a character from the input string
@@ -71,9 +73,10 @@ ALIGN:
 	sb	$zero, 0($sp)		# Store the zero value to the filler 
 	addi	$t3, $t3, 1		# Increment the string length by 1
 	j ALIGN				# Check if more filler space needs to be added
-	
-CENTRAL:
 	add	$s1, $zero, $t3		# Move the length of the string in the stack to a save register
+
+CENTRAL:
+	la	$gp, 0($sp)		# Load address of the stack to a surface level stack pointer
 	jal	SUBPROGRAMA		# Calls base 30 conversion program
 	lw	$v1, 0($sp)		# Load decimal value from stack
 	addi	$sp, $sp, 4
@@ -92,20 +95,17 @@ EXIT:
 	li	$v0, 10		# Exit program call
 	syscall	
 
-SUBPROGRAMA:
-	la	$gp, 0($sp)		# Load address of the stack to a surface level stack pointer
-	li	$t3, 0			# Reinitialize the temp register to zero
+SUBPROGRAMA:	
+	add	$t3, $zero, $zero	# Reinitialize the temp register to zero
 	jal	SUBPROGRAMB
-	li	$t1, -1
-	mult	$t1, $s1
-	mflo	$t1
-	add	$gp, $gp, $t1
+	add	$t1, $sp, $s1
+	blt	$gp, $t1, SUBPROGRAMA
 	jr	$ra		
 
 SUBPROGRAMB:	
 	lb	$t0, 0($gp)		# Load the byte that represents a character from the input string
-	li	$t1, 44
-	beq	$t0, $t1, SETUP
+	li	$t1, 44			# Load value of comma to temp register
+	beq	$t0, $t1, SETUP		# If the character is a comma 
 	beq	$t0, $zero, INCREMENT	# Skip over the filler bytes in stack
 	li	$t1, 9			# Loads the ASCII value of TAB
 	beq	$t0, $t1, BETWEEN	# Skips over the conversion if it is TAB
@@ -118,10 +118,11 @@ BETWEEN:
 	li	$t8, 1			# Turn the between tabs and spaces flag "on"
 	
 INCREMENT:
-	addi 	$gp, $gp, 1		# Increments the base address to read the next character
 	addi	$t3, $t3, 1		# Increments the loop counter by one as well 
 	slt 	$t1, $t3, $s1		# Checks to make sure the loop is within the limit
-	bne	$t1, $zero, SUBPROGRAMB	# If the loop is less than string length it continues
+	beq	$t1, $zero, SETUP	# If the loop is less than string length it continues
+	addi 	$gp, $gp, 1		# Increments the base address to read the next character
+	j	SUBPROGRAMB
 
 SETUP:	
 	beq	$t2, $zero, BINVALID	# If no viable characters were collected in the whole input it is invalid
@@ -132,7 +133,7 @@ MULTIPLIER:
 	mult	$t4, $s0		# Multiply base multiplier by 30		
 	mflo	$t4			# Update the base 
 	addi	$t1, $t1, -1		# Decrement highest exponent
-	bne	$t1, $zero, MULTIPLIER	# Keep going until the multiplier for the highest exponent is represented
+	bge	$t1, $zero, MULTIPLIER	# Keep going until the multiplier for the highest exponent is represented
 
 ADD:
 	lw	$t0, 0($sp)		# Loads the base 30 value from the stack (FILO)
@@ -150,10 +151,6 @@ ADD:
 	j	BEXIT
 
 BINVALID:
-	li	$t1, 4			# Load the word multiplier
-	mult	$t2, $t1		# Multiply the number of viable characters in the stack by word multiplier
-	mflo	$t1			# Move the product to temp register
-	add	$sp, $sp, $t1		# Pop the rest of the charcter values
 	addi	$v1, $zero, -1		# Put the invalid value into stack for the substring value
 
 BEXIT:	
@@ -161,7 +158,6 @@ BEXIT:
 	jr	$ra			# Exit subprogram B
 
 SUBPROGRAMC:
-	lb	$t0, 0($gp)		# Load the byte that represents a character from the input string
 	slti	$t1, $t0, 48		# Evaluates if the ASCII value could be a number or letter
 	bne	$t1, $zero, CINVALID	# If the value of the character is less than it's not a viable character
 	bne	$t8, $zero, CINVALID	# If there is a tab or space in between the character the input is invalid
